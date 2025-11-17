@@ -14,7 +14,7 @@ export const Footer = () => {
         <footer className="panel-footer">
             <div className="px-6 py-4">
                 <p className="text-sm text-gray-600 text-center">
-                    {footerText}
+                    {footerText} - E mais algo aqui
                 </p>
             </div>
         </footer>
