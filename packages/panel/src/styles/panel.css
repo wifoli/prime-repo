@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+/* Panel Layout Styles */
+.panel-container {
+    @apply min-h-screen flex flex-col;
+}
+
+.panel-main {
+    @apply flex flex-1;
+}
+
+.panel-sidebar {
+    @apply transition-all duration-300 ease-in-out;
+}
+
+.panel-sidebar.collapsed {
+    @apply w-16;
+}
+
+.panel-sidebar.expanded {
+    @apply w-64;
+}
+
+.panel-content {
+    @apply flex-1 p-6 overflow-auto bg-gray-50;
+}
+
+.panel-header {
+    @apply sticky top-0 z-50 bg-white shadow-sm;
+}
+
+.panel-footer {
+    @apply bg-white border-t border-gray-200;
+}
+
+/* Menu Item Styles */
+.menu-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200;
+    @apply hover:bg-gray-100 cursor-pointer;
+}
+
+.menu-item.active {
+    @apply bg-blue-50 text-blue-600;
+}
+
+.menu-item-icon {
+    @apply text-xl;
+}
+
+.menu-item-text {
+    @apply text-sm font-medium;
+}

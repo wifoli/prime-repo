@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  prime-repo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prime-repo-dev
+    ports:
+      - "5001:5001"  # App1
+      - "5002:5002"  # App2
+    volumes:
+      # Mount source code for HMR
+      - ./apps:/app/apps
+      - ./packages:/app/packages
+      - ./turbo.json:/app/turbo.json
+      # Use named volumes for node_modules to improve performance
+      - node_modules:/app/node_modules
+      - app1_node_modules:/app/apps/app1/node_modules
+      - app2_node_modules:/app/apps/app2/node_modules
+      - ui_node_modules:/app/packages/ui/node_modules
+      - panel_node_modules:/app/packages/panel/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_HOST=0.0.0.0
+      - CHOKIDAR_USEPOLLING=true
+    stdin_open: true
+    tty: true
+
+volumes:
+  node_modules:
+  app1_node_modules:
+  app2_node_modules:
+  ui_node_modules:
+  panel_node_modules:

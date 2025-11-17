@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+/* PrimeReact Theme - using Lara Light */
+@import "primereact/resources/themes/lara-light-blue/theme.css";
+
+/* PrimeReact Core CSS */
+@import "primereact/resources/primereact.min.css";
+
+/* PrimeIcons */
+@import "primeicons/primeicons.css";
+
+/* Custom CSS variables for theming */
+@layer base {
+    :root {
+        --primary-color: #3B82F6;
+        --primary-color-text: #ffffff;
+        --surface-ground: #f8f9fa;
+        --surface-card: #ffffff;
+    }
+}
+
+/* Custom utilities */
+@layer utilities {
+    .card-shadow {
+        box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.1);
+    }
+}
