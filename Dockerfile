@@ -17,9 +17,10 @@ COPY packages ./packages
 # Install dependencies
 RUN pnpm install
 
-# Build packages (ui and panel) before starting dev mode
+# Build packages (ui, panel and api) before starting dev mode
 RUN pnpm --filter @prime-repo/ui build
 RUN pnpm --filter @prime-repo/panel build
+RUN pnpm --filter @prime-repo/api build
 
 # Expose ports for apps (adjust as needed)
 # App1 will run on 5001, App2 on 5002
