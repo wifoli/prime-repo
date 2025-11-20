@@ -10,9 +10,9 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./validators": {
-      "types": "./dist/validators/index.d.ts",
-      "import": "./dist/validators/index.js"
+    "./validations": {
+      "types": "./dist/validations/index.d.ts",
+      "import": "./dist/validations/index.js"
     },
     "./formatters": {
       "types": "./dist/formatters/index.d.ts",
@@ -21,10 +21,6 @@
     "./helpers": {
       "types": "./dist/helpers/index.d.ts",
       "import": "./dist/helpers/index.js"
-    },
-    "./constants": {
-      "types": "./dist/constants/index.d.ts",
-      "import": "./dist/constants/index.js"
     }
   },
   "files": [
