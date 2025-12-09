@@ -1,5 +1,6 @@
-import { createContext, useContext, useState } from 'react';
-import { PanelContextType, PanelProviderProps } from '../types';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { PanelContextType, PanelProviderProps, MenuItem } from '../types';
 
 const PanelContext = createContext<PanelContextType | undefined>(undefined);
 
@@ -9,6 +10,27 @@ export const PanelProvider = ({
                                   defaultSidebarCollapsed = false
                               }: PanelProviderProps) => {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(defaultSidebarCollapsed);
+    const [activeItem, setActiveItem] = useState<string | null>(null);
+    const location = useLocation();
+
+    // Update active item based on current path
+    useEffect(() => {
+        const findActiveItem = (items: MenuItem[], path: string): string | null => {
+            for (const item of items) {
+                if (item.path === path) {
+                    return item.path;
+                }
+                if (item.items) {
+                    const found = findActiveItem(item.items, path);
+                    if (found) return found;
+                }
+            }
+            return null;
+        };
+
+        const active = findActiveItem(config.menuItems, location.pathname);
+        setActiveItem(active);
+    }, [location.pathname, config.menuItems]);
 
     const toggleSidebar = () => {
         setSidebarCollapsed(prev => !prev);
@@ -20,7 +42,9 @@ export const PanelProvider = ({
                 sidebarCollapsed,
                 toggleSidebar,
                 setSidebarCollapsed,
-                config
+                config,
+                activeItem,
+                setActiveItem
             }}
         >
             {children}

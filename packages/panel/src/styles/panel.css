@@ -2,53 +2,204 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Panel Layout Styles */
+/* Panel Container */
 .panel-container {
     @apply min-h-screen flex flex-col;
 }
 
 .panel-main {
-    @apply flex flex-1;
+    @apply flex flex-1 overflow-hidden;
 }
 
+/* Header Styles */
+.panel-header {
+    @apply sticky top-0 z-50 bg-white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.panel-header-toggle {
+    @apply transition-transform duration-200;
+}
+
+.panel-header-toggle:hover {
+    @apply transform scale-110;
+}
+
+.panel-header-user-menu {
+    @apply transition-all duration-200;
+}
+
+/* Sidebar Styles */
 .panel-sidebar {
-    @apply transition-all duration-300 ease-in-out;
+    @apply bg-white flex-shrink-0 overflow-y-auto overflow-x-hidden;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
 }
 
-.panel-sidebar.collapsed {
-    @apply w-16;
+.panel-sidebar-collapsed {
+    @apply w-20;
 }
 
-.panel-sidebar.expanded {
-    @apply w-64;
+.panel-sidebar-expanded {
+    @apply w-72;
 }
 
+.panel-sidebar-nav {
+    @apply py-4;
+}
+
+/* PanelMenu Customization */
+.panel-menu {
+    @apply border-none;
+}
+
+.panel-menu .p-panelmenu-panel {
+    @apply mb-1;
+}
+
+.panel-menu .p-panelmenu-header {
+    @apply rounded-none border-none;
+}
+
+.panel-menu .p-panelmenu-header-content {
+    @apply rounded-lg mx-2 transition-all duration-200;
+}
+
+.panel-menu .p-panelmenu-header-content:hover {
+    @apply bg-gray-100;
+}
+
+.panel-menu .p-panelmenu-header-action {
+    @apply rounded-lg px-4 py-3;
+}
+
+.panel-menu .p-panelmenu-content {
+    @apply border-none rounded-none;
+}
+
+.panel-menu .p-menuitem-link {
+    @apply rounded-lg mx-2 px-4 py-3 transition-all duration-200;
+}
+
+.panel-menu .p-menuitem-link:hover {
+    @apply bg-gray-100;
+}
+
+.panel-menu .p-menuitem-icon {
+    @apply text-gray-600;
+}
+
+.panel-menu .p-menuitem-text {
+    @apply text-gray-800 font-medium;
+}
+
+/* Active menu item */
+.panel-menu-item-active .p-menuitem-link,
+.panel-menu-item-active .p-panelmenu-header-action {
+    @apply bg-blue-50 text-blue-600;
+}
+
+.panel-menu-item-active .p-menuitem-icon {
+    @apply text-blue-600;
+}
+
+.panel-menu-item-active .p-menuitem-text {
+    @apply text-blue-600;
+}
+
+/* Collapsed menu styles */
+.panel-menu-collapsed .p-panelmenu-header-content,
+.panel-menu-collapsed .p-menuitem-link {
+    @apply justify-center;
+}
+
+.panel-menu-collapsed .p-menuitem-text,
+.panel-menu-collapsed .p-submenu-icon {
+    @apply hidden;
+}
+
+.panel-menu-collapsed .p-panelmenu-content {
+    @apply hidden;
+}
+
+/* Content Area */
 .panel-content {
     @apply flex-1 p-6 overflow-auto bg-gray-50;
 }
 
-.panel-header {
-    @apply sticky top-0 z-50 bg-white shadow-sm;
-}
-
+/* Footer Styles */
 .panel-footer {
     @apply bg-white border-t border-gray-200;
 }
 
-/* Menu Item Styles */
-.menu-item {
-    @apply flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200;
-    @apply hover:bg-gray-100 cursor-pointer;
+/* Scrollbar Customization */
+.panel-sidebar::-webkit-scrollbar {
+    @apply w-1.5;
 }
 
-.menu-item.active {
-    @apply bg-blue-50 text-blue-600;
+.panel-sidebar::-webkit-scrollbar-track {
+    @apply bg-transparent;
 }
 
-.menu-item-icon {
-    @apply text-xl;
+.panel-sidebar::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
 }
 
-.menu-item-text {
-    @apply text-sm font-medium;
+.panel-sidebar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .panel-sidebar-expanded {
+        @apply fixed inset-y-0 left-0 z-40;
+        box-shadow: 4px 0 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .panel-content {
+        @apply p-4;
+    }
+}
+
+/* Dark theme support */
+[data-theme='dark'] .panel-sidebar,
+[data-theme='dark'] .panel-header,
+[data-theme='dark'] .panel-footer {
+    @apply bg-gray-900 border-gray-800;
+}
+
+[data-theme='dark'] .panel-menu .p-menuitem-text {
+    @apply text-gray-200;
+}
+
+[data-theme='dark'] .panel-menu .p-menuitem-icon {
+    @apply text-gray-400;
+}
+
+[data-theme='dark'] .panel-menu .p-panelmenu-header-content:hover,
+[data-theme='dark'] .panel-menu .p-menuitem-link:hover {
+    @apply bg-gray-800;
+}
+
+[data-theme='dark'] .panel-content {
+    @apply bg-gray-800;
+}
+
+/* Animations */
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+.panel-sidebar-expanded {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Transition utilities */
+.panel-transition {
+    @apply transition-all duration-300 ease-in-out;
 }

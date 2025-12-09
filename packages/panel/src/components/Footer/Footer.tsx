@@ -1,6 +1,8 @@
-import { usePanelContext } from '../../context';
+import { usePanelContext } from '../../context/PanelContext';
+import { FooterProps } from '../../types';
+import { classNames } from 'primereact/utils';
 
-export const Footer = () => {
+export const Footer = ({ className }: FooterProps) => {
     const { config } = usePanelContext();
 
     if (!config.showFooter) {
@@ -11,10 +13,10 @@ export const Footer = () => {
     const footerText = config.footerText || `© ${currentYear} ${config.appName}. All rights reserved.`;
 
     return (
-        <footer className="panel-footer">
+        <footer className={classNames('panel-footer bg-white border-t border-gray-200', className)}>
             <div className="px-6 py-4">
-                <p className="text-sm text-gray-600 text-center">
-                    {footerText} - E mais algo aqui
+                <p className="text-sm text-gray-600 text-center m-0">
+                    {footerText}
                 </p>
             </div>
         </footer>
