@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Card } from './Card';
 import { Button } from './Button';
-import { VStack } from './Stack';
+import { VStack } from './layouts/Stack.tsx';
 import { Typography } from './Typography';
 
 export interface EmptyStateProps {
