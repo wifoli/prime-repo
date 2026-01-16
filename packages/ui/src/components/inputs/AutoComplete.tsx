@@ -1,4 +1,4 @@
-import { AutoComplete as PrimeAutoComplete, AutoCompleteProps as PrimeAutoCompleteProps } from 'primereact/autocomplete';
+import { AutoCompleteChangeEvent, AutoCompleteSelectEvent, AutoComplete as PrimeAutoComplete, AutoCompleteProps as PrimeAutoCompleteProps } from 'primereact/autocomplete';
 import { classNames } from 'primereact/utils';
 import { ReactNode, useState } from 'react';
 
@@ -7,7 +7,7 @@ export interface AutoCompleteOption {
     value: any;
 }
 
-export interface AutoCompleteProps extends Omit<PrimeAutoCompleteProps, 'onChange' | 'suggestions' | 'completeMethod'> {
+export interface AutoCompleteProps extends Omit<PrimeAutoCompleteProps, 'onChange' | 'suggestions' | 'completeMethod' | 'onSelect'> {
     fullWidth?: boolean;
     error?: boolean;
     helperText?: string;
@@ -15,7 +15,8 @@ export interface AutoCompleteProps extends Omit<PrimeAutoCompleteProps, 'onChang
     required?: boolean;
     startAddon?: ReactNode;
     endAddon?: ReactNode;
-    onChange?: (value: any) => void;
+    onChange?: (value: AutoCompleteOption | null) => void;
+    onSelect?: (value: AutoCompleteOption) => void;
     // Local data
     options?: AutoCompleteOption[];
     // API fetch
@@ -25,31 +26,37 @@ export interface AutoCompleteProps extends Omit<PrimeAutoCompleteProps, 'onChang
 }
 
 export const AutoComplete = ({
-                                 fullWidth = false,
-                                 error = false,
-                                 helperText,
-                                 label,
-                                 required = false,
-                                 className,
-                                 id,
-                                 startAddon,
-                                 endAddon,
-                                 onChange,
-                                 options = [],
-                                 onSearch,
-                                 minSearchLength = 1,
-                                 searchDelay = 300,
-                                 placeholder = 'Buscar...',
-                                 emptyMessage = 'Nenhum resultado encontrado',
-                                 ...props
-                             }: AutoCompleteProps) => {
+    fullWidth = false,
+    error = false,
+    helperText,
+    label,
+    required = false,
+    className,
+    id,
+    startAddon,
+    endAddon,
+    onChange,
+    options = [],
+    onSearch,
+    minSearchLength = 1,
+    searchDelay = 300,
+    placeholder = 'Buscar...',
+    emptyMessage = 'Nenhum resultado encontrado',
+    ...props
+}: AutoCompleteProps) => {
     const inputId = id || `autocomplete-${Math.random().toString(36).substr(2, 9)}`;
     const [suggestions, setSuggestions] = useState<AutoCompleteOption[]>([]);
     const [loading, setLoading] = useState(false);
 
-    const handleChange = (e: any) => {
+    const handleChange = (e: AutoCompleteChangeEvent) => {
         if (onChange) {
             onChange(e.value);
+        }
+    };
+
+    const handleSelect = (e: AutoCompleteSelectEvent<AutoCompleteOption>) => {
+        if (props.onSelect) {
+            props.onSelect(e.value);
         }
     };
 
@@ -89,16 +96,17 @@ export const AutoComplete = ({
             inputId={inputId}
             value={props.value}
             onChange={handleChange}
+            onSelect={handleSelect}
             suggestions={suggestions}
             completeMethod={search}
+            field="label"
+            forceSelection
             placeholder={placeholder}
             emptyMessage={loading ? 'Buscando...' : emptyMessage}
             delay={searchDelay}
             className={classNames(
                 'transition-colors duration-200',
-                {
-                    'w-full': fullWidth,
-                },
+                { 'w-full': fullWidth },
                 className
             )}
             inputClassName={classNames(
@@ -112,6 +120,7 @@ export const AutoComplete = ({
             )}
             panelClassName="shadow-lg border border-gray-200"
         />
+
     );
 
     return (
