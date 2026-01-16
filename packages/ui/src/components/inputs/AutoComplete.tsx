@@ -282,3 +282,191 @@ export const AutoComplete = ({
         </div>
     );
 };
+
+
+// ============================================
+// EXEMPLO DE USO - AutoComplete
+// ============================================
+
+// import { useState } from 'react';
+// import { AutoComplete, AutoCompleteOption } from './AutoComplete';
+
+// // Dados de exemplo
+// const languageOptions: AutoCompleteOption[] = [
+//     { label: 'JavaScript', value: 'js' },
+//     { label: 'TypeScript', value: 'ts' },
+//     { label: 'Python', value: 'py' },
+//     { label: 'Java', value: 'java' },
+//     { label: 'C#', value: 'csharp' },
+//     { label: 'Go', value: 'go' },
+//     { label: 'Rust', value: 'rust' },
+//     { label: 'Ruby', value: 'ruby' },
+//     { label: 'PHP', value: 'php' },
+//     { label: 'Swift', value: 'swift' },
+// ];
+
+// export function AutoCompleteExamples() {
+//     // ============================================
+//     // EXEMPLO 1: Busca Local (mais comum)
+//     // ============================================
+//     const [language, setLanguage] = useState<AutoCompleteOption | null>(null);
+
+//     // ============================================
+//     // EXEMPLO 2: Busca em API
+//     // ============================================
+//     const [city, setCity] = useState<AutoCompleteOption | null>(null);
+
+//     // Simula busca em API
+//     const searchCities = async (query: string): Promise<AutoCompleteOption[]> => {
+//         // Simula delay de rede
+//         await new Promise(resolve => setTimeout(resolve, 300));
+        
+//         // Mock de dados
+//         const cities = [
+//             { label: 'São Paulo', value: 1 },
+//             { label: 'Rio de Janeiro', value: 2 },
+//             { label: 'Belo Horizonte', value: 3 },
+//             { label: 'Curitiba', value: 4 },
+//             { label: 'Porto Alegre', value: 5 },
+//             { label: 'Salvador', value: 6 },
+//             { label: 'Brasília', value: 7 },
+//             { label: 'Fortaleza', value: 8 },
+//         ];
+        
+//         return cities.filter(c => 
+//             c.label.toLowerCase().includes(query.toLowerCase())
+//         );
+//     };
+
+//     // ============================================
+//     // EXEMPLO 3: Com Force Selection
+//     // ============================================
+//     const [product, setProduct] = useState<AutoCompleteOption | null>(null);
+
+//     const productOptions: AutoCompleteOption[] = [
+//         { label: 'Notebook Dell', value: 'dell-note' },
+//         { label: 'Notebook Lenovo', value: 'lenovo-note' },
+//         { label: 'Monitor LG', value: 'lg-mon' },
+//         { label: 'Teclado Logitech', value: 'logi-kb' },
+//     ];
+
+//     return (
+//         <div className="p-8 space-y-8 max-w-2xl mx-auto">
+//             <h1 className="text-2xl font-bold mb-6">AutoComplete - Exemplos de Uso</h1>
+
+//             {/* EXEMPLO 1: Busca Local */}
+//             <div className="p-6 border rounded-lg bg-gray-50">
+//                 <h2 className="text-lg font-semibold mb-4">1. Busca Local</h2>
+                
+//                 <AutoComplete
+//                     label="Linguagem de Programação"
+//                     options={languageOptions}
+//                     value={language}
+//                     onChange={(value) => {
+//                         console.log('Selecionado:', value);
+//                         setLanguage(value);
+//                     }}
+//                     placeholder="Digite para buscar..."
+//                     minSearchLength={1}
+//                     fullWidth
+//                     required
+//                 />
+
+//                 <div className="mt-4 p-3 bg-white rounded border">
+//                     <strong>Valor selecionado:</strong>
+//                     <pre className="text-sm mt-2">
+//                         {JSON.stringify(language, null, 2)}
+//                     </pre>
+//                 </div>
+//             </div>
+
+//             {/* EXEMPLO 2: Busca em API */}
+//             <div className="p-6 border rounded-lg bg-gray-50">
+//                 <h2 className="text-lg font-semibold mb-4">2. Busca em API</h2>
+                
+//                 <AutoComplete
+//                     label="Cidade"
+//                     value={city}
+//                     onChange={(value) => {
+//                         console.log('Cidade selecionada:', value);
+//                         setCity(value);
+//                     }}
+//                     onSearch={searchCities}
+//                     minSearchLength={2}
+//                     searchDelay={300}
+//                     placeholder="Digite o nome da cidade..."
+//                     fullWidth
+//                     helperText="Digite pelo menos 2 caracteres para buscar"
+//                 />
+
+//                 <div className="mt-4 p-3 bg-white rounded border">
+//                     <strong>Valor selecionado:</strong>
+//                     <pre className="text-sm mt-2">
+//                         {JSON.stringify(city, null, 2)}
+//                     </pre>
+//                 </div>
+//             </div>
+
+//             {/* EXEMPLO 3: Com Force Selection */}
+//             <div className="p-6 border rounded-lg bg-gray-50">
+//                 <h2 className="text-lg font-semibold mb-4">3. Com Force Selection</h2>
+//                 <p className="text-sm text-gray-600 mb-4">
+//                     Quando <code>forceSelection=true</code>, o usuário deve selecionar um item da lista.
+//                     Se sair do campo sem selecionar, o valor anterior é restaurado.
+//                 </p>
+                
+//                 <AutoComplete
+//                     label="Produto"
+//                     options={productOptions}
+//                     value={product}
+//                     onChange={(value) => {
+//                         console.log('Produto selecionado:', value);
+//                         setProduct(value);
+//                     }}
+//                     placeholder="Selecione um produto..."
+//                     forceSelection={true}
+//                     fullWidth
+//                 />
+
+//                 <div className="mt-4 p-3 bg-white rounded border">
+//                     <strong>Valor selecionado:</strong>
+//                     <pre className="text-sm mt-2">
+//                         {JSON.stringify(product, null, 2)}
+//                     </pre>
+//                 </div>
+//             </div>
+
+//             {/* EXEMPLO 4: Com Erro */}
+//             <div className="p-6 border rounded-lg bg-gray-50">
+//                 <h2 className="text-lg font-semibold mb-4">4. Com Estado de Erro</h2>
+                
+//                 <AutoComplete
+//                     label="Campo Obrigatório"
+//                     options={languageOptions}
+//                     value={null}
+//                     onChange={() => {}}
+//                     placeholder="Este campo é obrigatório"
+//                     error={true}
+//                     helperText="Por favor, selecione uma opção"
+//                     required
+//                     fullWidth
+//                 />
+//             </div>
+
+//             {/* EXEMPLO 5: Com Dropdown Button */}
+//             <div className="p-6 border rounded-lg bg-gray-50">
+//                 <h2 className="text-lg font-semibold mb-4">5. Com Botão Dropdown</h2>
+                
+//                 <AutoComplete
+//                     label="Com Dropdown"
+//                     options={languageOptions}
+//                     value={language}
+//                     onChange={setLanguage}
+//                     placeholder="Clique na seta ou digite..."
+//                     dropdown={true}
+//                     fullWidth
+//                 />
+//             </div>
+//         </div>
+//     );
+// }
