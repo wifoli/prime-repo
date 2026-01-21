@@ -1,14 +1,14 @@
-import { ReactNode, ReactElement, cloneElement } from 'react';
+import { ReactElement, cloneElement } from 'react';
 import { classNames } from 'primereact/utils';
-import type { UseFormResult } from '@prime-repo/shared/hooks';
+import type { UseFormResult } from '../hooks';
 
-export interface FormFieldProps {
+export interface FormFieldProps<T extends Record<string, any>> {
   children: ReactElement;
-  name: string;
+  name: keyof T;
   label?: string;
   description?: string;
   required?: boolean;
-  form?: UseFormResult;
+  form?: UseFormResult<T>;
   showError?: boolean;
   className?: string;
 }
@@ -22,7 +22,7 @@ export interface FormFieldProps {
  * - Mensagem de erro (integrado com useForm)
  * - Estados de erro visual
  */
-export function FormField({
+export function FormField<T extends Record<string, any>>({
   children,
   name,
   label,
@@ -31,7 +31,7 @@ export function FormField({
   form,
   showError = true,
   className,
-}: FormFieldProps) {
+}: FormFieldProps<T>) {
   // Obter erro e touched do form se fornecido
   const error = form?.errors[name];
   const touched = form?.touched[name];
@@ -56,7 +56,7 @@ export function FormField({
       {/* Label */}
       {label && (
         <label
-          htmlFor={name}
+          htmlFor={name as string}
           className="text-sm font-medium text-gray-700 flex items-center gap-1"
         >
           {label}
@@ -77,104 +77,5 @@ export function FormField({
         <span className="text-sm text-gray-600">{description}</span>
       ) : null}
     </div>
-  );
-}
-
-/**
- * FormSection - Seção de formulário com título e descrição
- */
-export interface FormSectionProps {
-  children: ReactNode;
-  title?: string;
-  description?: string;
-  divider?: boolean;
-  className?: string;
-}
-
-export function FormSection({
-  children,
-  title,
-  description,
-  divider = false,
-  className,
-}: FormSectionProps) {
-  return (
-    <div className={classNames('space-y-4', className)}>
-      {(title || description) && (
-        <div className={classNames('space-y-1', { 'pb-4 border-b border-gray-200': divider })}>
-          {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
-          {description && <p className="text-sm text-gray-600">{description}</p>}
-        </div>
-      )}
-      {children}
-    </div>
-  );
-}
-
-/**
- * FormActions - Container para ações do formulário (botões)
- */
-export interface FormActionsProps {
-  children: ReactNode;
-  align?: 'left' | 'center' | 'right' | 'between';
-  sticky?: boolean;
-  className?: string;
-}
-
-export function FormActions({
-  children,
-  align = 'right',
-  sticky = false,
-  className,
-}: FormActionsProps) {
-  const alignMap = {
-    left: 'justify-start',
-    center: 'justify-center',
-    right: 'justify-end',
-    between: 'justify-between',
-  };
-
-  return (
-    <div
-      className={classNames(
-        'flex items-center gap-3 pt-6 mt-6 border-t border-gray-200',
-        alignMap[align],
-        {
-          'sticky bottom-0 bg-white shadow-lg -mx-6 px-6 -mb-6 pb-6': sticky,
-        },
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-
-/**
- * FormGroup - Agrupa múltiplos campos relacionados
- */
-export interface FormGroupProps {
-  children: ReactNode;
-  label?: string;
-  description?: string;
-  className?: string;
-}
-
-export function FormGroup({
-  children,
-  label,
-  description,
-  className,
-}: FormGroupProps) {
-  return (
-    <fieldset className={classNames('space-y-3', className)}>
-      {(label || description) && (
-        <legend className="space-y-1">
-          {label && <div className="text-sm font-medium text-gray-700">{label}</div>}
-          {description && <div className="text-sm text-gray-600">{description}</div>}
-        </legend>
-      )}
-      <div className="space-y-3">{children}</div>
-    </fieldset>
   );
 }
