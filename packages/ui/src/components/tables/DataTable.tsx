@@ -1,177 +1,431 @@
-import { DataTable as PrimeDataTable, DataTableProps as PrimeDataTableProps } from 'primereact/datatable';
-import { Column, ColumnProps } from 'primereact/column';
-import { Paginator, PaginatorPageChangeEvent } from 'primereact/paginator';
-import { classNames } from 'primereact/utils';
-import { ReactNode } from 'react';
+import React, { useMemo, useCallback, memo, ReactElement, isValidElement, Children, useRef } from "react";
+import {
+    DataTable as PrimeDataTable,
+    DataTableProps as PrimeDataTableProps,
+} from "primereact/datatable";
+import { Column, ColumnProps } from "primereact/column";
+import { Paginator, PaginatorPageChangeEvent } from "primereact/paginator";
+import { classNames } from "primereact/utils";
+import type { TableColumn, PaginationResult, SortingResult, SortDirection } from "./types";
 
-export interface DataTableColumn extends Omit<ColumnProps, 'sortable'> {
-  field: string;
-  header: string;
-  sortable?: boolean;
-  body?: (data: any) => ReactNode;
-  headerStyle?: React.CSSProperties;
-  bodyStyle?: React.CSSProperties;
-  filter?: boolean;
-  filterElement?: ReactNode;
-}
+// ============================================================================
+// TYPES
+// ============================================================================
 
-export interface DataTablePagination {
-  page: number;
-  pageSize: number;
-  totalRecords: number;
-  onPageChange: (page: number) => void;
-  onPageSizeChange: (size: number) => void;
-  rowsPerPageOptions?: number[];
-}
-
-export interface DataTableSorting {
-  ordering?: string;
-  onSort: (field: string) => void;
-  getSortOrder: (field: string) => 'asc' | 'desc' | null;
-}
-
-export interface DataTableProps<T = any> extends Omit<PrimeDataTableProps<T[]>, 'value' | 'paginator' | 'rows'> {
-  data: T[];
-  columns: DataTableColumn[];
-  
-  // Pagination (external)
-  pagination?: DataTablePagination;
-  
-  // Sorting (Django DRF via URL)
-  sorting?: DataTableSorting;
-  
-  // Loading state
-  loading?: boolean;
-  
-  // Empty state
-  emptyMessage?: string | ReactNode;
-  
-  // Selection
-  selection?: T | T[];
-  onSelectionChange?: (e: { value: T | T[] }) => void;
-  selectionMode?: 'single' | 'multiple' | 'checkbox' | 'radiobutton';
-  
-  // Style
-  striped?: boolean;
-  gridlines?: boolean;
-  showHeader?: boolean;
-  
-  // Other
-  lazy?: boolean;
-  className?: string;
-}
+export interface DataTableColumn<TData = unknown> extends TableColumn<TData> { }
 
 /**
- * DataTable wrapper com suporte a paginação externa e ordenação Django DRF
+ * Props de paginação - compatível com PaginationResult do useTableQuery
+ * Aceita tanto setPage/setPageSize quanto onPageChange/onPageSizeChange
  */
-export function DataTable<T = any>({
-  data,
-  columns,
-  pagination,
-  sorting,
-  loading = false,
-  emptyMessage = 'Nenhum registro encontrado',
-  selection,
-  onSelectionChange,
-  selectionMode,
-  striped = true,
-  gridlines = false,
-  showHeader = true,
-  lazy = true,
-  className,
-  ...props
-}: DataTableProps<T>) {
-  
-  // Handle sort
-  const handleSort = (field: string) => {
-    if (sorting) {
-      sorting.onSort(field);
-    }
-  };
-
-  // Get sort icon
-  const getSortIcon = (field: string): ReactNode => {
-    if (!sorting) return null;
-    
-    const order = sorting.getSortOrder(field);
-    
-    if (order === 'asc') {
-      return <i className="pi pi-sort-up ml-2 text-blue-600" />;
-    } else if (order === 'desc') {
-      return <i className="pi pi-sort-down ml-2 text-blue-600" />;
-    }
-    return <i className="pi pi-sort-alt ml-2 text-gray-400" />;
-  };
-
-  // Custom header template with sort
-  const headerTemplate = (column: DataTableColumn) => {
-    return (
-      <div 
-        className={classNames(
-          'flex items-center',
-          { 'cursor-pointer select-none': column.sortable }
-        )}
-        onClick={() => column.sortable && handleSort(column.field)}
-      >
-        <span>{column.header}</span>
-        {column.sortable && getSortIcon(column.field)}
-      </div>
-    );
-  };
-
-  return (
-    <div className={classNames('datatable-wrapper', className)}>
-      <PrimeDataTable
-        value={data}
-        lazy={lazy}
-        loading={loading}
-        emptyMessage={emptyMessage}
-        stripedRows={striped}
-        showGridlines={gridlines}
-        showHeaders={showHeader}
-        selection={selection}
-        onSelectionChange={onSelectionChange}
-        selectionMode={selectionMode}
-        dataKey="id"
-        className="border rounded-lg overflow-hidden"
-        {...props}
-      >
-        {columns.map((col) => (
-          <Column
-            key={col.field}
-            field={col.field}
-            header={headerTemplate(col)}
-            body={col.body}
-            sortable={false} // We handle sort manually
-            style={col.bodyStyle}
-            headerStyle={col.headerStyle}
-            filter={col.filter}
-            filterElement={col.filterElement}
-            {...col}
-          />
-        ))}
-      </PrimeDataTable>
-
-      {pagination && (
-        <Paginator
-          first={(pagination.page - 1) * pagination.pageSize}
-          rows={pagination.pageSize}
-          totalRecords={pagination.totalRecords}
-          rowsPerPageOptions={pagination.rowsPerPageOptions || [10, 25, 50, 100]}
-          onPageChange={(e: PaginatorPageChangeEvent) => {
-            const newPage = Math.floor(e.first / e.rows) + 1;
-            if (newPage !== pagination.page) {
-              pagination.onPageChange(newPage);
-            }
-            if (e.rows !== pagination.pageSize) {
-              pagination.onPageSizeChange(e.rows);
-            }
-          }}
-          template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown CurrentPageReport"
-          currentPageReportTemplate="{first} a {last} de {totalRecords} registros"
-          className="mt-4"
-        />
-      )}
-    </div>
-  );
+export interface DataTablePaginationProps {
+    page: number;
+    pageSize: number;
+    totalRecords: number;
+    /** @deprecated Use setPage - mantido para compatibilidade */
+    onPageChange?: (page: number) => void;
+    /** @deprecated Use setPageSize - mantido para compatibilidade */
+    onPageSizeChange?: (size: number) => void;
+    /** Método preferido do PaginationResult */
+    setPage?: (page: number) => void;
+    /** Método preferido do PaginationResult */
+    setPageSize?: (size: number) => void;
+    rowsPerPageOptions?: number[];
 }
+
+export interface DataTableProps<
+    TData extends Record<string, any> = Record<string, any>,
+> extends Omit<
+    PrimeDataTableProps<TData[]>,
+    | "value"
+    | "paginator"
+    | "rows"
+    | "onSort"
+    | "sortField"
+    | "sortOrder"
+    | "selection"
+    | "onSelectionChange"
+    | "dataKey"
+> {
+    data: TData[];
+    columns?: DataTableColumn<TData>[];
+    loading?: boolean;
+    emptyMessage?: string | React.ReactNode;
+    pagination?: DataTablePaginationProps | PaginationResult;
+    pageSizeOptions?: number[];
+    sorting?: SortingResult;
+    selection?: TData | TData[];
+    onSelectionChange?: (value: TData | TData[]) => void;
+    selectionMode?: "single" | "multiple" | "checkbox" | "radiobutton";
+    dataKey?: keyof TData;
+    striped?: boolean;
+    gridLines?: boolean;
+    showHeader?: boolean;
+    className?: string;
+    size?: "small" | "normal" | "large";
+    actions?: DataTableActionsProps<TData>;
+    children?: React.ReactNode;
+}
+
+export interface DataTableActionsProps<TData> {
+    header?: React.ReactNode;
+    width?: string | number;
+    align?: "left" | "center" | "right";
+    body: (row: TData) => React.ReactNode;
+}
+
+// ============================================================================
+// SUB-COMPONENTS
+// ============================================================================
+
+interface SortIconProps {
+    direction: SortDirection | null;
+    index?: number;
+    showIndex?: boolean;
+}
+
+const SortIcon = memo<SortIconProps>(({ direction, index = -1, showIndex = false }) => {
+    if (direction === "asc") {
+        return (
+            <span className="ml-2 inline-flex items-center">
+                <i className="pi pi-sort-up text-primary-600" />
+                {showIndex && index >= 0 && (
+                    <span className="ml-1 text-xs text-gray-500">{index + 1}</span>
+                )}
+            </span>
+        );
+    }
+
+    if (direction === "desc") {
+        return (
+            <span className="ml-2 inline-flex items-center">
+                <i className="pi pi-sort-down text-primary-600" />
+                {showIndex && index >= 0 && (
+                    <span className="ml-1 text-xs text-gray-500">{index + 1}</span>
+                )}
+            </span>
+        );
+    }
+
+    return <i className="pi pi-sort-alt ml-2 text-gray-400" />;
+});
+
+SortIcon.displayName = "SortIcon";
+
+interface ColumnHeaderProps {
+    header: string;
+    field: string;
+    sortable?: boolean;
+    direction: SortDirection | null;
+    index: number;
+    onSort: (field: string) => void;
+}
+
+const ColumnHeader = memo<ColumnHeaderProps>(({
+    header,
+    field,
+    sortable,
+    direction,
+    index,
+    onSort
+}) => {
+    const handleClick = useCallback(() => {
+        if (sortable) {
+            onSort(field);
+        }
+    }, [sortable, onSort, field]);
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === "Enter") {
+            handleClick();
+        }
+    }, [handleClick]);
+
+    return (
+        <div
+            className={classNames("flex items-center", {
+                "cursor-pointer select-none hover:text-primary-600": sortable,
+            })}
+            onClick={handleClick}
+            role={sortable ? "button" : undefined}
+            tabIndex={sortable ? 0 : undefined}
+            onKeyDown={sortable ? handleKeyDown : undefined}
+        >
+            <span>{header}</span>
+            {sortable && <SortIcon direction={direction} index={index} showIndex={false} />}
+        </div>
+    );
+});
+
+ColumnHeader.displayName = "ColumnHeader";
+
+// ============================================================================
+// HELPER - Normaliza pagination props
+// ============================================================================
+
+function normalizePagination(pagination: DataTablePaginationProps | PaginationResult) {
+    return {
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        totalRecords: 'totalRecords' in pagination
+            ? pagination.totalRecords
+            : 0,
+        setPage: 'setPage' in pagination && pagination.setPage
+            ? pagination.setPage
+            : ('onPageChange' in pagination ? pagination.onPageChange : undefined),
+        setPageSize: 'setPageSize' in pagination && pagination.setPageSize
+            ? pagination.setPageSize
+            : ('onPageSizeChange' in pagination ? pagination.onPageSizeChange : undefined),
+    };
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+const PrimeDataTableAny = PrimeDataTable as unknown as React.ComponentType<any>;
+
+function DataTableComponent<TData extends Record<string, any> = Record<string, any>>({
+    data,
+    columns,
+    loading = false,
+    emptyMessage = "Nenhum registro encontrado",
+    pagination,
+    pageSizeOptions = [10, 25, 50, 100],
+    sorting,
+    selection,
+    onSelectionChange,
+    selectionMode,
+    dataKey = "id",
+    striped = true,
+    gridLines = false,
+    showHeader = true,
+    className,
+    size = "normal",
+    actions,
+    children,
+    ...restProps
+}: DataTableProps<TData>) {
+    // ========== REFS PARA ESTABILIDADE ==========
+
+    const sortingRef = useRef(sorting);
+    sortingRef.current = sorting;
+
+    const paginationRef = useRef(pagination);
+    paginationRef.current = pagination;
+
+    // ========== HANDLERS ESTÁVEIS ==========
+
+    const handleSort = useCallback((field: string) => {
+        sortingRef.current?.toggleSort(field);
+    }, []);
+
+    const handleSelectionChange = useCallback(
+        (e: { value: TData | TData[] }) => {
+            onSelectionChange?.(e.value);
+        },
+        [onSelectionChange],
+    );
+
+    const handlePageChange = useCallback((e: PaginatorPageChangeEvent) => {
+        const pag = paginationRef.current;
+        if (!pag) return;
+
+        const normalized = normalizePagination(pag);
+        const newPage = Math.floor(e.first / e.rows) + 1;
+
+        if (e.rows !== normalized.pageSize) {
+            normalized.setPageSize?.(e.rows);
+        } else if (newPage !== normalized.page) {
+            normalized.setPage?.(newPage);
+        }
+    }, []);
+
+    // ========== MEMOIZED VALUES ==========
+
+    // Extrair valores de sorting para dependências estáveis
+    const sortingOrdering = sorting?.ordering ?? "";
+
+    const renderColumns = useMemo(() => {
+        if (children) {
+            return Children.map(children, (child) => {
+                if (!isValidElement(child)) return null;
+                const childProps = child.props as ColumnProps & { sortable?: boolean };
+                const field = childProps.field;
+
+                if (childProps.sortable && field && sorting) {
+                    const direction = sorting.getSortDirection(field);
+                    const index = sorting.getSortIndex(field);
+
+                    return React.cloneElement(child as ReactElement<ColumnProps>, {
+                        ...childProps,
+                        sortable: false,
+                        header: (
+                            <ColumnHeader
+                                header={
+                                    typeof childProps.header === "string"
+                                        ? childProps.header
+                                        : String(childProps.header)
+                                }
+                                field={field}
+                                sortable={true}
+                                direction={direction}
+                                index={index}
+                                onSort={handleSort}
+                            />
+                        ),
+                    });
+                }
+
+                return child;
+            });
+        }
+
+        if (columns) {
+            return columns
+                .filter((col) => !col.hidden)
+                .map((col, idx) => {
+                    const hasField = Boolean(col.field);
+
+                    const direction = hasField
+                        ? sorting?.getSortDirection(col.field as string) ?? null
+                        : null;
+
+                    const index = hasField
+                        ? sorting?.getSortIndex(col.field as string) ?? -1
+                        : -1;
+
+                    return (
+                        <Column
+                            key={String(col.field ?? `__virtual__${idx}`)}
+                            {...(hasField && { field: col.field })}
+                            header={
+                                <ColumnHeader
+                                    header={String(col.header)}
+                                    field={col.field as string}
+                                    sortable={col.sortable}
+                                    direction={direction}
+                                    index={index}
+                                    onSort={handleSort}
+                                />
+                            }
+                            body={col.body as ColumnProps["body"]}
+                            style={{
+                                ...col.bodyStyle,
+                                width: col.width,
+                                textAlign: col.align,
+                            }}
+                            headerStyle={{
+                                ...col.headerStyle,
+                                width: col.width,
+                                textAlign: col.align,
+                            }}
+                            headerClassName={col.headerClassName}
+                            bodyClassName={col.bodyClassName}
+                            sortable={false}
+                        />
+                    );
+                });
+        }
+
+        return null;
+    }, [children, columns, sortingOrdering, handleSort, sorting]);
+
+    const sizeClass = useMemo(() => {
+        switch (size) {
+            case "small":
+                return "p-datatable-sm";
+            case "large":
+                return "p-datatable-lg";
+            default:
+                return "";
+        }
+    }, [size]);
+
+    // Normalizar pagination para render
+    const normalizedPagination = useMemo(() => {
+        if (!pagination) return null;
+        return normalizePagination(pagination);
+    }, [pagination]);
+
+    const selectionColumn = useMemo(() => {
+        if (selectionMode !== "checkbox") return null;
+
+        return (
+            <Column
+                key="__selection__"
+                selectionMode="multiple"
+                headerStyle={{ width: "3rem" }}
+                bodyStyle={{ textAlign: "center" }}
+            />
+        );
+    }, [selectionMode]);
+
+    const actionsColumn = useMemo(() => {
+        if (!actions) return null;
+
+        return (
+            <Column
+                key="__actions__"
+                header={actions.header ?? ""}
+                body={(row: TData) => actions.body(row)}
+                style={{
+                    width: actions.width ?? "1%",
+                    textAlign: actions.align ?? "right",
+                    whiteSpace: "nowrap",
+                }}
+                headerStyle={{
+                    width: actions.width ?? "1%",
+                    textAlign: actions.align ?? "right",
+                }}
+            />
+        );
+    }, [actions]);
+
+
+
+    // ========== RENDER ==========
+
+    return (
+        <div className={classNames("datatable-container", className)}>
+            <PrimeDataTableAny
+                value={data}
+                lazy
+                loading={loading}
+                emptyMessage={emptyMessage}
+                stripedRows={striped}
+                showGridlines={gridLines}
+                showHeaders={showHeader}
+                selection={selection}
+                onSelectionChange={handleSelectionChange}
+                selectionMode={selectionMode}
+                dataKey={dataKey}
+                className={classNames("rounded-lg overflow-hidden", sizeClass)}
+                {...restProps}
+            >
+                {selectionColumn}
+                {renderColumns}
+                {actionsColumn}
+            </PrimeDataTableAny>
+
+            {normalizedPagination && (
+                <Paginator
+                    first={(normalizedPagination.page - 1) * normalizedPagination.pageSize}
+                    rows={normalizedPagination.pageSize}
+                    totalRecords={normalizedPagination.totalRecords}
+                    rowsPerPageOptions={pageSizeOptions}
+                    onPageChange={handlePageChange}
+                    template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown CurrentPageReport"
+                    currentPageReportTemplate="{first} a {last} de {totalRecords} registros"
+                    className="mt-4 border-t border-gray-200 pt-4"
+                />
+            )}
+        </div>
+    );
+}
+
+// ============================================================================
+// EXPORT
+// ============================================================================
+
+export const DataTable = memo(DataTableComponent) as typeof DataTableComponent;
